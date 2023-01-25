@@ -88,6 +88,9 @@ proc initTtfe*(): Ttfe {.exportpy.} =
   ttfe.restart()
   return ttfe
 
+proc getState*(self: Ttfe): (array[Width, array[Height, int]], int, bool, bool) {.exportpy.} =
+  return (self.grid[], self.score, self.stuck, self.hasWon)
+
 proc swipe*(self: Ttfe, dir: Direction) {.exportpy.} =
   var changed = false
 
