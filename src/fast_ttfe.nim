@@ -2,16 +2,13 @@ import nimpy
 from std/random import sample, randomize, rand
 import std/strformat
 
-proc add*(x, y: int): int {.exportpy.} =
-  x + y
-
 type Direction* = enum
   Up, Left, Down, Right
 const Width = 4
 const Height = 4
 const lx = Width - 1
 const ly = Height - 1
-type Grid = ref array[Width, array[Height, int]]
+type Grid* = ref array[Width, array[Height, int]]
 
 proc `[]`*(g: Grid, x, y: int): int =
   return g[x][y]
@@ -69,7 +66,16 @@ proc spawn(self: Ttfe) =
             
   if stuck: self.stuck = true
 
-proc restart*(self: Ttfe) {.exportpy.} =
+proc getState*(self: Ttfe): (array[Width * Height, int], int, bool, bool) {.exportpy.} =
+  var flattened: array[Width * Height, int]
+  var index = 0
+  for x in 0..<Width:
+    for y in 0..<Height:
+      flattened[index] = self.grid[x, y]
+      index += 1
+  return (flattened, self.score, self.stuck, self.hasWon)
+
+proc restart*(self: Ttfe):  (array[Width * Height, int], int, bool, bool) {.exportpy.} =
   self.hasWon = false
   self.score = 0
   self.stuck = false
@@ -81,28 +87,26 @@ proc restart*(self: Ttfe) {.exportpy.} =
   for i in 0..<self.startTileCount:
     self.spawn()
 
+  return self.getState()
+
 proc initTtfe*(): Ttfe {.exportpy.} =
   randomize()
   let ttfe = Ttfe(startTileCount: 2)
   ttfe.grid = new(Grid)
-  ttfe.restart()
+  discard ttfe.restart()
   return ttfe
 
-proc getState*(self: Ttfe): (array[Width, array[Height, int]], int, bool, bool) {.exportpy.} =
-  return (self.grid[], self.score, self.stuck, self.hasWon)
-
-proc swipe*(self: Ttfe, dir: Direction) {.exportpy.} =
+proc swipe*(self: Ttfe, dir: Direction): (array[Width * Height, int], int, bool, bool) {.exportpy.} =
   var changed = false
 
   for x in 0..<Width:
-    var values: array[Height, int]
     var encounteredEmpty = false
     var prevValue = 0
     var arrIndex = 0
-    template addValue(v: int) = 
-      values[arrIndex] = v
+    template addValue(v: int, change=true) = 
+      self.grid[x, arrIndex, dir] = v
       arrIndex += 1
-      if encounteredEmpty:
+      if encounteredEmpty and change:
         changed = true
 
     for y in 0..<Height:
@@ -121,21 +125,25 @@ proc swipe*(self: Ttfe, dir: Direction) {.exportpy.} =
         prevValue = value
       else:
         prevValue = value
+        if encounteredEmpty:
+          changed = true
 
     if prevValue != 0:
-      addValue(prevValue)
-    
-    for y in 0..<Height:
-      self.grid[x, y, dir] = if y < values.len: values[y] else: 0
+      addValue(prevValue, false)
 
   if changed:
     self.spawn()
+
+  return self.getState()
 
 proc print*(self: Ttfe) {.exportpy.} =
   echo "====================================="
   echo &"Score = {self.score}"
   for y in 0..<Height:
     for x in 0..<Width:
-      stdout.write(&"{self.grid[x, y]}  ")
+      let val = self.grid[x, y]
+      stdout.write(&"{val} ")
+      if val < 100: stdout.write(" ")
+      if val < 10: stdout.write(" ")
     stdout.write("\n")
   flushFile(stdout)

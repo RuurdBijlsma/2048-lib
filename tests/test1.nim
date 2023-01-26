@@ -12,39 +12,38 @@ import fast_ttfe
 from std/random import sample
 from std/stats import mean
 
-test "can add":
-  check add(5, 5) == 10
-
 test "basic play":
   var ttfe = initTtfe()
   ttfe.print()
   echo "=up="
-  ttfe.swipe(Direction.Up)
+  discard ttfe.swipe(Direction.Up)
   ttfe.print()
   echo "=left="
-  ttfe.swipe(Direction.Left)
+  discard ttfe.swipe(Direction.Left)
   ttfe.print()
   echo "=down="
-  ttfe.swipe(Direction.Down)
+  discard ttfe.swipe(Direction.Down)
   ttfe.print()
   echo "=right="
-  ttfe.swipe(Direction.Right)
+  discard ttfe.swipe(Direction.Right)
   ttfe.print()
   check true
 
-test "play game":
+test "play 10000 games":
   var ttfe = initTtfe()
 
-  var directions = @[Direction.Up, Direction.Right, Direction.Down, Direction.Left]
+  # var directions = @[Direction.Up, Direction.Right, Direction.Down, Direction.Left] # avg 2000 score
+  var directions = @[Direction.Up, Direction.Down, Direction.Left, Direction.Right] # avg 1000 score
 
-  let startTime = getMonoTime()
   var scores = newSeq[int]()
-  for _ in 0..<10000:
-    ttfe.restart()
+  let startTime = getMonoTime()
+  for i in 0..<10000:
+    var j = 0
+    discard ttfe.restart()
     while true:
-      var dir = directions.sample()
-      ttfe.swipe(dir)
-      # ttfe.print()
+      var dir = directions[j mod 4]
+      j += 1
+      discard ttfe.swipe(dir)
       if ttfe.stuck or ttfe.hasWon:
         scores.add(ttfe.score)
         break
@@ -54,3 +53,15 @@ test "play game":
   echo &"avg score: {mean(scores)}"
 
   check true
+
+test "detect change":
+  var ttfe = initTtfe()
+  var grid = new(Grid)
+  grid[0, 3] = 16
+  ttfe.grid = grid
+  ttfe.print()
+  
+  discard ttfe.swipe(Direction.Left)
+  echo "=========================================="
+  echo "DO SWIPE ", Direction.Left
+  ttfe.print()
