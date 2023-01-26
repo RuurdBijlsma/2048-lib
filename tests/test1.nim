@@ -32,8 +32,9 @@ test "basic play":
 test "play 10000 games":
   var ttfe = initTtfe()
 
-  # var directions = @[Direction.Up, Direction.Right, Direction.Down, Direction.Left] # avg 2000 score
-  var directions = @[Direction.Up, Direction.Down, Direction.Left, Direction.Right] # avg 1000 score
+  var directions = @[Direction.Up, Direction.Right, Direction.Down, Direction.Left] # avg 2086.600119999968 score
+  # var directions = @[Direction.Up, Direction.Down, Direction.Left, Direction.Right] # avg 1000 score
+  # var directions = @[Direction.Up, Direction.Left, Direction.Down, Direction.Right] # avg avg score: 2084.330200000014 score
 
   var scores = newSeq[int]()
   let startTime = getMonoTime()
