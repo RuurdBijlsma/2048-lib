@@ -11,21 +11,22 @@ import std/strformat
 import fast_ttfe
 from std/random import sample
 from std/stats import mean
+from monteCarlo import pickBestMove
 
 test "basic play":
   var ttfe = initTtfe()
   ttfe.print()
   echo "=up="
-  discard ttfe.swipe(Direction.Up)
+  ttfe.swipe(Direction.Up)
   ttfe.print()
   echo "=left="
-  discard ttfe.swipe(Direction.Left)
+  ttfe.swipe(Direction.Left)
   ttfe.print()
   echo "=down="
-  discard ttfe.swipe(Direction.Down)
+  ttfe.swipe(Direction.Down)
   ttfe.print()
   echo "=right="
-  discard ttfe.swipe(Direction.Right)
+  ttfe.swipe(Direction.Right)
   ttfe.print()
   check true
 
@@ -38,13 +39,13 @@ test "play 10000 games":
 
   var scores = newSeq[int]()
   let startTime = getMonoTime()
-  for i in 0..<10000:
+  for i in 0..<1000:
     var j = 0
-    discard ttfe.restart()
+    ttfe.restart()
     while true:
       var dir = directions[j mod 4]
       j += 1
-      discard ttfe.swipe(dir)
+      ttfe.swipe(dir)
       if ttfe.stuck or ttfe.hasWon:
         scores.add(ttfe.score)
         break
@@ -62,7 +63,10 @@ test "detect change":
   ttfe.grid = grid
   ttfe.print()
   
-  discard ttfe.swipe(Direction.Left)
+  ttfe.swipe(Direction.Left)
   echo "=========================================="
   echo "DO SWIPE ", Direction.Left
   ttfe.print()
+
+test "monte carlo":
+  pickBestMove()

@@ -66,16 +66,17 @@ proc spawn(self: Ttfe) =
             
   if stuck: self.stuck = true
 
-proc getState*(self: Ttfe): (array[Width * Height, int], int, bool, bool) {.exportpy.} =
-  var flattened: array[Width * Height, int]
-  var index = 0
-  for x in 0..<Width:
-    for y in 0..<Height:
-      flattened[index] = self.grid[x, y]
-      index += 1
-  return (flattened, self.score, self.stuck, self.hasWon)
+proc getState*(self: Ttfe): (Grid, int, bool, bool) =
+  return (self.grid, self.score, self.stuck, self.hasWon)
 
-proc restart*(self: Ttfe):  (array[Width * Height, int], int, bool, bool) {.exportpy.} =
+proc setState*(self: Ttfe, state: (array[Width, array[Height, int]], int, bool, bool)) =
+  self.grid[] = state[0]
+  self.score = state[1]
+  self.stuck = state[2]
+  self.hasWon = state[3]
+
+
+proc restart*(self: Ttfe) {.exportpy.} =
   self.hasWon = false
   self.score = 0
   self.stuck = false
@@ -87,16 +88,14 @@ proc restart*(self: Ttfe):  (array[Width * Height, int], int, bool, bool) {.expo
   for i in 0..<self.startTileCount:
     self.spawn()
 
-  return self.getState()
-
 proc initTtfe*(): Ttfe {.exportpy.} =
   randomize()
   let ttfe = Ttfe(startTileCount: 2)
   ttfe.grid = new(Grid)
-  discard ttfe.restart()
+  ttfe.restart()
   return ttfe
 
-proc swipe*(self: Ttfe, dir: Direction): (array[Width * Height, int], int, bool, bool) {.exportpy.} =
+proc swipe*(self: Ttfe, dir: Direction) {.exportpy.} =
   var changed = false
 
   for x in 0..<Width:
@@ -133,8 +132,6 @@ proc swipe*(self: Ttfe, dir: Direction): (array[Width * Height, int], int, bool,
 
   if changed:
     self.spawn()
-
-  return self.getState()
 
 proc print*(self: Ttfe) {.exportpy.} =
   echo "====================================="
